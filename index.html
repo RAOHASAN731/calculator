@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            transition: background 0.3s ease;
+            padding: 20px;
+        }
+
+        body.light-theme {
+            background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 50%, #ffffff 100%);
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .theme-toggle, .settings-btn, .help-btn {
+            position: absolute;
+            top: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-toggle {
+            right: 30px;
+        }
+
+        .settings-btn {
+            right: 180px;
+        }
+
+        .help-btn {
+            right: 330px;
+        }
+
+        .theme-toggle:hover, .settings-btn:hover, .help-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        body.light-theme .theme-toggle,
+        body.light-theme .settings-btn,
+        body.light-theme .help-btn {
+            background: rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            color: #333;
+        }
+
+        .calculator {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            max-width: 380px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        body.light-theme .calculator {
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .display {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: right;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        body.light-theme .display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .previous-operand {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+            min-height: 24px;
+            margin-bottom: 5px;
+            word-wrap: break-word;
+        }
+
+        .current-operand {
+            color: white;
+            font-size: 36px;
+            font-weight: 600;
+            min-height: 45px;
+            word-wrap: break-word;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        button {
+            padding: 22px;
+            font-size: 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            color: #333;
+            background: #f0f0f0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .span-two {
+            grid-column: span 2;
+        }
+
+        .operator {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        body.light-theme .operator {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .clear {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+        }
+
+        .equals {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .number {
+            background: #ffffff;
+            border: 2px solid #e0e0e0;
+        }
+
+        .decimal {
+            background: #ffffff;
+            border: 2px solid #e0e0e0;
+        }
+
+        .function {
+            background: linear-gradient(135deg, #ffa751 0%, #ffe259 100%);
+            color: white;
+            font-size: 18px;
+        }
+
+        .history-panel {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            max-width: 350px;
+            width: 100%;
+            max-height: 600px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        body.light-theme .history-panel {
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .history-header h2 {
+            color: #333;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .history-stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #11998e;
+        }
+
+        body.light-theme .stat-value {
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .clear-history, .export-history {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            flex: 1;
+        }
+
+        .export-history {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .clear-history:hover, .export-history:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .history-search {
+            margin-bottom: 15px;
+        }
+
+        .history-search input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .history-search input:focus {
+            outline: none;
+            border-color: #11998e;
+        }
+
+        body.light-theme .history-search input:focus {
+            border-color: #667eea;
+        }
+
+        .history-list {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border-left: 4px solid #11998e;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        body.light-theme .history-item {
+            border-left-color: #667eea;
+        }
+
+        .history-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .history-expression {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .history-result {
+            color: #333;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-timestamp {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .history-delete {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .history-item:hover .history-delete {
+            opacity: 1;
+        }
+
+        .empty-history {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-size: 16px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Confirmation Dialog */
+        .confirm-dialog {
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .confirm-dialog h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .confirm-dialog p {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .confirm-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .confirm-btn.cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .confirm-btn.confirm {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+        }
+
+        .confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .modal-header h2 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            color: #333;
+            transform: none;
+        }
+
+        .preference-group {
+            margin-bottom: 25px;
+        }
+
+        .preference-group h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preference-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .preference-option label {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .preference-description {
+            font-size: 13px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: #ccc;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #11998e;
+        }
+
+        body.light-theme .toggle-switch.active {
+            background: #667eea;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(24px);
+        }
+
+        select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            color: #333;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        input[type="color"] {
+            width: 60px;
+            height: 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            background: none;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 6px;
+        }
+
+        /* Help Section */
+        .help-section {
+            margin-bottom: 20px;
+        }
+
+        .help-section h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .help-section p, .help-section ul {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .help-section ul {
+            padding-left: 20px;
+        }
+
+        .help-section li {
+            margin-bottom: 5px;
+        }
+
+        .keyboard-shortcut {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: 600;
+            margin: 0 2px;
+        }
+
+        @media (max-width: 768px) {
+            .theme-toggle, .settings-btn, .help-btn {
+                top: 10px;
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+            
+            .theme-toggle {
+                right: 10px;
+            }
+            
+            .settings-btn {
+                right: 130px;
+            }
+
+            .help-btn {
+                right: 250px;
+            }
+
+            .container {
+                flex-direction: column;
+            }
+        }
+
+        /* Memory indicator */
+        .memory-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Notification toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <button class="help-btn" onclick="openHelp()">❓ Help</button>
+    <button class="settings-btn" onclick="openSettings()">⚙️ Settings</button>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+    
+    <div class="container">
+        <div class="calculator">
+            <div class="display">
+                <div class="memory-indicator" id="memoryIndicator" style="display: none;">M</div>
+                <div class="previous-operand" id="previousOperand"></div>
+                <div class="current-operand" id="currentOperand">0</div>
+            </div>
+            <div class="buttons">
+                <button class="function" onclick="memoryRecall()">MR</button>
+                <button class="function" onclick="memoryAdd()">M+</button>
+                <button class="function" onclick="memoryClear()">MC</button>
+                <button class="operator" onclick="chooseOperation('÷')">÷</button>
+                
+                <button class="number" onclick="appendNumber('7')">7</button>
+                <button class="number" onclick="appendNumber('8')">8</button>
+                <button class="number" onclick="appendNumber('9')">9</button>
+                <button class="operator" onclick="chooseOperation('×')">×</button>
+                
+                <button class="number" onclick="appendNumber('4')">4</button>
+                <button class="number" onclick="appendNumber('5')">5</button>
+                <button class="number" onclick="appendNumber('6')">6</button>
+                <button class="operator" onclick="chooseOperation('-')">-</button>
+                
+                <button class="number" onclick="appendNumber('1')">1</button>
+                <button class="number" onclick="appendNumber('2')">2</button>
+                <button class="number" onclick="appendNumber('3')">3</button>
+                <button class="operator" onclick="chooseOperation('+')">+</button>
+                
+                <button class="clear" onclick="clearAll()">AC</button>
+                <button class="number" onclick="appendNumber('0')">0</button>
+                <button class="decimal" onclick="appendNumber('.')">.</button>
+                <button class="operator" onclick="deleteDigit()">DEL</button>
+                
+                <button class="function" onclick="calculatePercentage()">%</button>
+                <button class="function" onclick="calculateSquare()">x²</button>
+                <button class="function" onclick="calculateSquareRoot()">√</button>
+                <button class="equals" onclick="calculate()">=</button>
+            </div>
+        </div>
+
+        <div class="history-panel" id="historyPanel">
+            <div class="history-header">
+                <h2>📊 History</h2>
+            </div>
+            
+            <div class="history-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalCalcs">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="todayCalcs">0</div>
+                    <div class="stat-label">Today</div>
+                </div>
+            </div>
+
+            <div class="history-search">
+                <input type="text" id="historySearch" placeholder="🔍 Search history..." oninput="searchHistory()">
+            </div>
+
+            <div class="history-actions">
+                <button class="export-history" onclick="exportHistory()">📥 Export</button>
+                <button class="clear-history" onclick="clearHistory()">🗑️ Clear</button>
+            </div>
+            
+            <div class="history-list" id="historyList">
+                <div class="empty-history">No calculations yet</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Preferences</h2>
+                <button class="close-modal" onclick="closeSettings()">×</button>
+            </div>
+            
+            <div class="preference-group">
+                <h3>🎨 Display Settings</h3>
+                <div class="preference-option">
+                    <div>
+                        <label>Show History Panel</label>
+                        <div class="preference-description">Toggle history sidebar visibility</div>
+                    </div>
+                    <div class="toggle-switch active" id="showHistoryToggle" onclick="toggleHistoryPanel()"></div>
+                </div>
+                <div class="preference-option">
+                    <div>
+                        <label>Sound Effects</label>
+                        <div class="preference-description">Enable button click sounds</div>
+                    </div>
+                    <div class="toggle-switch" id="soundToggle" onclick="toggleSound()"></div>
+                </div>
+                <div class="preference-option">
+                    <div>
+                        <label>Animations</label>
+                        <div class="preference-description">Enable smooth transitions</div>
+                    </div>
+                    <div class="toggle-switch active" id="animationsToggle" onclick="toggleAnimations()"></div>
+                </div>
+            </div>
+
+            <div class="preference-group">
+                <h3>🎨 Theme Colors</h3>
+                <div class="preference-option">
+                    <label>Primary Color</label>
+                    <input type="color" id="primaryColor" value="#11998e" onchange="updatePrimaryColor()">
+                </div>
+                <div class="preference-option">
+                    <label>Secondary Color</label>
+                    <input type="color" id="secondaryColor" value="#38ef7d" onchange="updateSecondaryColor()">
+                </div>
+                <div class="preference-option">
+                    <label>Background Start</label>
+                    <input type="color" id="bgColorStart" value="#0f2027" onchange="updateBgColors()">
+                </div>
+                <div class="preference-option">
+                    <label>Background End</label>
+                    <input type="color" id="bgColorEnd" value="#2c5364" onchange="updateBgColors()">
+                </div>
+                <div class="preference-option" style="justify-content: center;">
+                    <button class="clear-history" onclick="resetColors()" style="width: 100%;">🔄 Reset to Default</button>
+                </div>
+            </div>
+
+            <div class="preference-group">
+                <h3>🔢 Calculation Settings</h3>
+                <div class="preference-option">
+                    <label>Decimal Places</label>
+                    <select id="decimalPlaces" onchange="updateDecimalPlaces()">
+                        <option value="auto">Auto</option>
+                        <option value="2">2</option>
+                        <option value="4">4</option>
+                        <option value="6">6</option>
+                        <option value="8">8</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+                <div class="preference-option">
+                    <div>
+                        <label>Thousands Separator</label>
+                        <div class="preference-description">Format large numbers (1,000)</div>
+                    </div>
+                    <div class="toggle-switch" id="separatorToggle" onclick="toggleSeparator()"></div>
+                </div>
+            </div>
+
+            <div class="preference-group">
+                <h3>📜 History Settings</h3>
+                <div class="preference-option">
+                    <label>Max History Items</label>
+                    <select id="maxHistory" onchange="updateMaxHistory()">
+                        <option value="10">10</option>
+                        <option value="20" selected>20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="500">500</option>
+                    </select>
+                </div>
+                <div class="preference-option">
+                    <div>
+                        <label>Auto-Save History</label>
+                        <div class="preference-description">Automatically save calculations</div>
+                    </div>
+                    <div class="toggle-switch active" id="autoSaveToggle" onclick="toggleAutoSave()"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal" id="helpModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>❓ Help & Guide</h2>
+                <button class="close-modal" onclick="closeHelp()">×</button>
+            </div>
+            
+            <div class="help-section">
+                <h3>🎯 Basic Operations</h3>
+                <p>Use the number buttons (0-9) and operation buttons (+, -, ×, ÷) to perform calculations.</p>
+                <ul>
+                    <li><strong>AC</strong> - All Clear: Resets the calculator</li>
+                    <li><strong>DEL</strong> - Delete: Removes the last digit</li>
+                    <li><strong>=</strong> - Calculates the result</li>
+                </ul>
+            </div>
+
+            <div class="help-section">
+                <h3>🔧 Advanced Functions</h3>
+                <ul>
+                    <li><strong>%</strong> - Percentage: Calculates percentage of current number</li>
+                    <li><strong>x²</strong> - Square: Squares the current number</li>
+                    <li><strong>√</strong> - Square Root: Calculates square root</li>
+                    <li><strong>MR</strong> - Memory Recall: Retrieves stored value</li>
+                    <li><strong>M+</strong> - Memory Add: Adds current value to memory</li>
+                    <li><strong>MC</strong> - Memory Clear: Clears stored memory</li>
+                </ul>
+            </div>
+
+            <div class="help-section">
+                <h3>⌨️ Keyboard Shortcuts</h3>
+                <ul>
+                    <li><span class="keyboard-shortcut">0-9</span> - Number input</li>
+                    <li><span class="keyboard-shortcut">+</span> <span class="keyboard-shortcut">-</span> <span class="keyboard-shortcut">*</span> <span class="keyboard-shortcut">/</span> - Operations</li>
+                    <li><span class="keyboard-shortcut">Enter</span> or <span class="keyboard-shortcut">=</span> - Calculate</li>
+                    <li><span class="keyboard-shortcut">Esc</span> - Clear all</li>
+                    <li><span class="keyboard-shortcut">Backspace</span> - Delete last digit</li>
+                    <li><span class="keyboard-shortcut">.</span> - Decimal point</li>
+                </ul>
+            </div>
+
+            <div class="help-section">
+                <h3>📊 History Features</h3>
+                <ul>
+                    <li><strong>Search</strong> - Find specific calculations</li>
+                    <li><strong>Export</strong> - Download history as text file</li>
+                    <li><strong>Click item</strong> - Reuse previous calculation</li>
+                    <li><strong>Delete icon</strong> - Remove individual items</li>
+                </ul>
+            </div>
+
+            <div class="help-section">
+                <h3>⚙️ Settings</h3>
+                <p>Customize your calculator experience:</p>
+                <ul>
+                    <li><strong>Theme Colors</strong> - Personalize appearance</li>
+                    <li><strong>Decimal Places</strong> - Control precision</li>
+                    <li><strong>History Limit</strong> - Set max saved items</li>
+                    <li><strong>Animations</strong> - Enable/disable effects</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div class="modal" id="confirmDialog">
+        <div class="modal-content confirm-dialog">
+            <h2 id="confirmTitle">Confirm Action</h2>
+            <p id="confirmMessage">Are you sure?</p>
+            <div class="confirm-buttons">
+                <button class="confirm-btn cancel" onclick="closeConfirmDialog()">Cancel</button>
+                <button class="confirm-btn confirm" id="confirmActionBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let currentOperand = '0';
+        let previousOperand = '';
+        let operation = null;
+        let history = [];
+        let memory = 0;
+        
+        // Preferences
+        let preferences = {
+            showHistory: true,
+            soundEnabled: false,
+            animationsEnabled: true,
+            decimalPlaces: 'auto',
+            maxHistory: 20,
+            primaryColor: '#11998e',
+            secondaryColor: '#38ef7d',
+            bgColorStart: '#0f2027',
+            bgColorEnd: '#2c5364',
+            thousandsSeparator: false,
+            autoSave: true
+        };
+
+        // Load saved data
+        function loadData() {
+            const savedHistory = localStorage.getItem('calcHistory');
+            const savedPreferences = localStorage.getItem('calcPreferences');
+            const savedMemory = localStorage.getItem('calcMemory');
+            
+            if (savedHistory) {
+                history = JSON.parse(savedHistory);
+                updateHistoryDisplay();
+                updateHistoryStats();
+            }
+            
+            if (savedPreferences) {
+                preferences = {...preferences, ...JSON.parse(savedPreferences)};
+                applyPreferences();
+            }
+
+            if (savedMemory) {
+                memory = parseFloat(savedMemory);
+                updateMemoryIndicator();
+            }
+        }
+
+        // Save data
+        function saveHistory() {
+            if (preferences.autoSave) {
+                localStorage.setItem('calcHistory', JSON.stringify(history));
+            }
+        }
+
+        function savePreferences() {
+            localStorage.setItem('calcPreferences', JSON.stringify(preferences));
+        }
+
+        function saveMemory() {
+            localStorage.setItem('calcMemory', memory.toString());
+        }
+
+        function applyPreferences() {
+            // Apply show history
+            const historyPanel = document.getElementById('historyPanel');
+            const showHistoryToggle = document.getElementById('showHistoryToggle');
+            if (preferences.showHistory) {
+                historyPanel.style.display = 'flex';
+                showHistoryToggle.classList.add('active');
+            } else {
+                historyPanel.style.display = 'none';
+                showHistoryToggle.classList.remove('active');
+            }
+
+            // Apply sound
+            const soundToggle = document.getElementById('soundToggle');
+            if (preferences.soundEnabled) {
+                soundToggle.classList.add('active');
+            } else {
+                soundToggle.classList.remove('active');
+            }
+
+            // Apply animations
+            const animationsToggle = document.getElementById('animationsToggle');
+            if (preferences.animationsEnabled) {
+                animationsToggle.classList.add('active');
+                document.body.style.setProperty('--animation-speed', '0.3s');
+            } else {
+                animationsToggle.classList.remove('active');
+                document.body.style.setProperty('--animation-speed', '0s');
+            }
+
+            // Apply separator
+            const separatorToggle = document.getElementById('separatorToggle');
+            if (preferences.thousandsSeparator) {
+                separatorToggle.classList.add('active');
+            } else {
+                separatorToggle.classList.remove('active');
+            }
+
+            // Apply auto-save
+            const autoSaveToggle = document.getElementById('autoSaveToggle');
+            if (preferences.autoSave) {
+                autoSaveToggle.classList.add('active');
+            } else {
+                autoSaveToggle.classList.remove('active');
+            }
+
+            // Apply decimal places
+            document.getElementById('decimalPlaces').value = preferences.decimalPlaces;
+
+            // Apply max history
+            document.getElementById('maxHistory').value = preferences.maxHistory;
+
+            // Apply custom colors
+            document.getElementById('primaryColor').value = preferences.primaryColor;
+            document.getElementById('secondaryColor').value = preferences.secondaryColor;
+            document.getElementById('bgColorStart').value = preferences.bgColorStart;
+            document.getElementById('bgColorEnd').value = preferences.bgColorEnd;
+            
+            applyCustomColors();
+        }
+
+        function formatNumber(num) {
+            if (preferences.thousandsSeparator) {
+                return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            }
+            return num.toString();
+        }
+
+        function updateDisplay() {
+            const displayNum = formatNumber(currentOperand);
+            document.getElementById('currentOperand').textContent = displayNum;
+            if (operation) {
+                document.getElementById('previousOperand').textContent = 
+                    `${formatNumber(previousOperand)} ${operation}`;
+            } else {
+                document.getElementById('previousOperand').textContent = previousOperand;
+            }
+        }
+
+        function appendNumber(number) {
+            if (number === '.' && currentOperand.includes('.')) return;
+            if (currentOperand === '0' && number !== '.') {
+                currentOperand = number;
+            } else {
+                currentOperand += number;
+            }
+            updateDisplay();
+        }
+
+        function chooseOperation(op) {
+            if (currentOperand === '') return;
+            if (previousOperand !== '') {
+                calculate();
+            }
+            operation = op;
+            previousOperand = currentOperand;
+            currentOperand = '';
+            updateDisplay();
+        }
+
+        function formatResult(result) {
+            if (preferences.decimalPlaces === 'auto') {
+                return result.toString();
+            } else {
+                const decimals = parseInt(preferences.decimalPlaces);
+                return parseFloat(result.toFixed(decimals)).toString();
+            }
+        }
+
+        function calculate() {
+            let result;
+            const prev = parseFloat(previousOperand);
+            const current = parseFloat(currentOperand);
+            
+            if (isNaN(prev) || isNaN(current)) return;
+            
+            let expression = `${previousOperand} ${operation} ${currentOperand}`;
+            
+            switch (operation) {
+                case '+':
+                    result = prev + current;
+                    break;
+                case '-':
+                    result = prev - current;
+                    break;
+                case '×':
+                    result = prev * current;
+                    break;
+                case '÷':
+                    if (current === 0) {
+                        showToast('Cannot divide by zero!', 'error');
+                        currentOperand = 'Error';
+                        previousOperand = '';
+                        operation = null;
+                        updateDisplay();
+                        setTimeout(() => {
+                            clearAll();
+                        }, 1500);
+                        return;
+                    }
+                    result = prev / current;
+                    break;
+                default:
+                    return;
+            }
+            
+            result = parseFloat(formatResult(result));
+            
+            // Add to history
+            addToHistory(expression, result);
+            
+            currentOperand = result.toString();
+            operation = null;
+            previousOperand = '';
+            updateDisplay();
+        }
+
+        function calculatePercentage() {
+            const num = parseFloat(currentOperand);
+            if (isNaN(num)) return;
+            
+            const result = num / 100;
+            addToHistory(`${currentOperand}%`, result);
+            currentOperand = result.toString();
+            updateDisplay();
+        }
+
+        function calculateSquare() {
+            const num = parseFloat(currentOperand);
+            if (isNaN(num)) return;
+            
+            const result = num * num;
+            addToHistory(`${currentOperand}²`, result);
+            currentOperand = formatResult(result);
+            updateDisplay();
+        }
+
+        function calculateSquareRoot() {
+            const num = parseFloat(currentOperand);
+            if (isNaN(num)) return;
+            if (num < 0) {
+                showToast('Cannot calculate square root of negative number!', 'error');
+                return;
+            }
+            
+            const result = Math.sqrt(num);
+            addToHistory(`√${currentOperand}`, result);
+            currentOperand = formatResult(result);
+            updateDisplay();
+        }
+
+        function memoryRecall() {
+            if (memory !== 0) {
+                currentOperand = memory.toString();
+                updateDisplay();
+                showToast('Memory recalled', 'success');
+            }
+        }
+
+        function memoryAdd() {
+            const num = parseFloat(currentOperand);
+            if (!isNaN(num)) {
+                memory += num;
+                saveMemory();
+                updateMemoryIndicator();
+                showToast('Added to memory', 'success');
+            }
+        }
+
+        function memoryClear() {
+            memory = 0;
+            saveMemory();
+            updateMemoryIndicator();
+            showToast('Memory cleared', 'success');
+        }
+
+        function updateMemoryIndicator() {
+            const indicator = document.getElementById('memoryIndicator');
+            if (memory !== 0) {
+                indicator.style.display = 'block';
+                indicator.textContent = `M: ${formatNumber(memory.toFixed(2))}`;
+            } else {
+                indicator.style.display = 'none';
+            }
+        }
+
+        function addToHistory(expression, result) {
+            const historyItem = {
+                expression: expression,
+                result: result,
+                timestamp: new Date().toISOString(),
+                displayTime: new Date().toLocaleString()
+            };
+            
+            history.unshift(historyItem);
+            
+            // Limit history based on preference
+            if (history.length > preferences.maxHistory) {
+                history = history.slice(0, preferences.maxHistory);
+            }
+            
+            saveHistory();
+            updateHistoryDisplay();
+            updateHistoryStats();
+        }
+
+        function updateHistoryStats() {
+            const total = history.length;
+            const today = history.filter(item => {
+                const itemDate = new Date(item.timestamp);
+                const now = new Date();
+                return itemDate.toDateString() === now.toDateString();
+            }).length;
+
+            document.getElementById('totalCalcs').textContent = total;
+            document.getElementById('todayCalcs').textContent = today;
+        }
+
+        function updateHistoryDisplay(filteredHistory = null) {
+            const historyList = document.getElementById('historyList');
+            const displayHistory = filteredHistory || history;
+            
+            if (displayHistory.length === 0) {
+                historyList.innerHTML = '<div class="empty-history">No calculations found</div>';
+                return;
+            }
+            
+            historyList.innerHTML = displayHistory.map((item, index) => `
+                <div class="history-item" onclick="reuseCalculation('${item.result}')">
+                    <div class="history-expression">${item.expression}</div>
+                    <div class="history-result">
+                        = ${formatNumber(item.result)}
+                        <button class="history-delete" onclick="event.stopPropagation(); deleteHistoryItem(${history.indexOf(item)})">×</button>
+                    </div>
+                    <div class="history-timestamp">${item.displayTime}</div>
+                </div>
+            `).join('');
+        }
+
+        function searchHistory() {
+            const searchTerm = document.getElementById('historySearch').value.toLowerCase();
+            if (searchTerm === '') {
+                updateHistoryDisplay();
+                return;
+            }
+
+            const filtered = history.filter(item => 
+                item.expression.toLowerCase().includes(searchTerm) ||
+                item.result.toString().includes(searchTerm)
+            );
+
+            updateHistoryDisplay(filtered);
+        }
+
+        function reuseCalculation(value) {
+            currentOperand = value.toString();
+            previousOperand = '';
+            operation = null;
+            updateDisplay();
+            showToast('Calculation loaded', 'success');
+        }
+
+        function deleteHistoryItem(index) {
+            history.splice(index, 1);
+            saveHistory();
+            updateHistoryDisplay();
+            updateHistoryStats();
+            showToast('Item deleted', 'success');
+        }
+
+        function clearHistory() {
+            showConfirmDialog(
+                'Clear History',
+                'Are you sure you want to clear all calculation history? This action cannot be undone.',
+                () => {
+                    history = [];
+                    saveHistory();
+                    updateHistoryDisplay();
+                    updateHistoryStats();
+                    document.getElementById('historySearch').value = '';
+                    closeConfirmDialog();
+                    showToast('History cleared', 'success');
+                }
+            );
+        }
+
+        function exportHistory() {
+            if (history.length === 0) {
+                showToast('No history to export', 'error');
+                return;
+            }
+
+            let exportText = 'Calculator History Export\n';
+            exportText += '========================\n\n';
+            
+            history.forEach((item, index) => {
+                exportText += `${index + 1}. ${item.expression} = ${item.result}\n`;
+                exportText += `   Time: ${item.displayTime}\n\n`;
+            });
+
+            const blob = new Blob([exportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `calculator-history-${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast('History exported successfully!', 'success');
+        }
+
+        function clearAll() {
+            currentOperand = '0';
+            previousOperand = '';
+            operation = null;
+            updateDisplay();
+        }
+
+        function deleteDigit() {
+            if (currentOperand === '0' || currentOperand === '') return;
+            currentOperand = currentOperand.slice(0, -1);
+            if (currentOperand === '') currentOperand = '0';
+            updateDisplay();
+        }
+
+        // Theme toggle
+        function toggleTheme() {
+            document.body.classList.toggle('light-theme');
+            const themeBtn = document.querySelector('.theme-toggle');
+            
+            if (document.body.classList.contains('light-theme')) {
+                themeBtn.textContent = '☀️ Light';
+                localStorage.setItem('theme', 'light');
+                // Reset to default light theme colors
+                document.body.style.background = '';
+                document.querySelectorAll('.display, .operator').forEach(el => {
+                    el.style.background = '';
+                });
+            } else {
+                themeBtn.textContent = '🌙 Dark';
+                localStorage.setItem('theme', 'dark');
+                // Apply custom dark theme colors
+                applyCustomColors();
+            }
+        }
+
+        // Settings Modal
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+
+        // Help Modal
+        function openHelp() {
+            document.getElementById('helpModal').classList.add('active');
+        }
+
+        function closeHelp() {
+            document.getElementById('helpModal').classList.remove('active');
+        }
+
+        // Confirmation Dialog Functions
+        function showConfirmDialog(title, message, onConfirm) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            
+            const confirmBtn = document.getElementById('confirmActionBtn');
+            confirmBtn.onclick = onConfirm;
+            
+            document.getElementById('confirmDialog').classList.add('active');
+        }
+
+        function closeConfirmDialog() {
+            document.getElementById('confirmDialog').classList.remove('active');
+        }
+
+        // Toast notification
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.background = type === 'error' ? '#ff6b6b' : type === 'success' ? '#11998e' : '#333';
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Preference toggles
+        function toggleHistoryPanel() {
+            preferences.showHistory = !preferences.showHistory;
+            savePreferences();
+            applyPreferences();
+        }
+
+        function toggleSound() {
+            preferences.soundEnabled = !preferences.soundEnabled;
+            savePreferences();
+            applyPreferences();
+        }
+
+        function toggleAnimations() {
+            preferences.animationsEnabled = !preferences.animationsEnabled;
+            savePreferences();
+            applyPreferences();
+        }
+
+        function toggleSeparator() {
+            preferences.thousandsSeparator = !preferences.thousandsSeparator;
+            savePreferences();
+            applyPreferences();
+            updateDisplay();
+            updateHistoryDisplay();
+        }
+
+        function toggleAutoSave() {
+            preferences.autoSave = !preferences.autoSave;
+            savePreferences();
+            applyPreferences();
+            if (preferences.autoSave) {
+                saveHistory();
+                showToast('Auto-save enabled', 'success');
+            }
+        }
+
+        function updateDecimalPlaces() {
+            preferences.decimalPlaces = document.getElementById('decimalPlaces').value;
+            savePreferences();
+        }
+
+        function updateMaxHistory() {
+            preferences.maxHistory = parseInt(document.getElementById('maxHistory').value);
+            
+            // Trim history if needed
+            if (history.length > preferences.maxHistory) {
+                history = history.slice(0, preferences.maxHistory);
+                saveHistory();
+                updateHistoryDisplay();
+            }
+            
+            savePreferences();
+        }
+
+        // Custom color functions
+        function applyCustomColors() {
+            const root = document.documentElement;
+            
+            // Only apply custom colors in dark theme
+            if (!document.body.classList.contains('light-theme')) {
+                root.style.setProperty('--primary-color', preferences.primaryColor);
+                root.style.setProperty('--secondary-color', preferences.secondaryColor);
+                root.style.setProperty('--bg-start', preferences.bgColorStart);
+                root.style.setProperty('--bg-end', preferences.bgColorEnd);
+                
+                // Apply background gradient
+                document.body.style.background = `linear-gradient(135deg, ${preferences.bgColorStart} 0%, ${preferences.bgColorEnd} 100%)`;
+                
+                // Apply display and operator gradients
+                const displays = document.querySelectorAll('.display');
+                const operators = document.querySelectorAll('.operator');
+                const historyItems = document.querySelectorAll('.history-item');
+                const statValues = document.querySelectorAll('.stat-value');
+                
+                displays.forEach(el => {
+                    el.style.background = `linear-gradient(135deg, ${preferences.primaryColor} 0%, ${preferences.secondaryColor} 100%)`;
+                });
+                
+                operators.forEach(el => {
+                    el.style.background = `linear-gradient(135deg, ${preferences.primaryColor} 0%, ${preferences.secondaryColor} 100%)`;
+                });
+                
+                historyItems.forEach(el => {
+                    el.style.borderLeftColor = preferences.primaryColor;
+                });
+
+                statValues.forEach(el => {
+                    el.style.color = preferences.primaryColor;
+                });
+                
+                // Apply toggle switch color
+                const toggleSwitches = document.querySelectorAll('.toggle-switch.active');
+                toggleSwitches.forEach(el => {
+                    el.style.background = preferences.primaryColor;
+                });
+            }
+        }
+
+        function updatePrimaryColor() {
+            preferences.primaryColor = document.getElementById('primaryColor').value;
+            savePreferences();
+            applyCustomColors();
+        }
+
+        function updateSecondaryColor() {
+            preferences.secondaryColor = document.getElementById('secondaryColor').value;
+            savePreferences();
+            applyCustomColors();
+        }
+
+        function updateBgColors() {
+            preferences.bgColorStart = document.getElementById('bgColorStart').value;
+            preferences.bgColorEnd = document.getElementById('bgColorEnd').value;
+            savePreferences();
+            applyCustomColors();
+        }
+
+        function resetColors() {
+            preferences.primaryColor = '#11998e';
+            preferences.secondaryColor = '#38ef7d';
+            preferences.bgColorStart = '#0f2027';
+            preferences.bgColorEnd = '#2c5364';
+            
+            document.getElementById('primaryColor').value = preferences.primaryColor;
+            document.getElementById('secondaryColor').value = preferences.secondaryColor;
+            document.getElementById('bgColorStart').value = preferences.bgColorStart;
+            document.getElementById('bgColorEnd').value = preferences.bgColorEnd;
+            
+            savePreferences();
+            applyCustomColors();
+            showToast('Colors reset to default', 'success');
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') appendNumber(e.key);
+            if (e.key === '.') appendNumber('.');
+            if (e.key === '+' || e.key === '-') chooseOperation(e.key);
+            if (e.key === '*') chooseOperation('×');
+            if (e.key === '/') {
+                e.preventDefault();
+                chooseOperation('÷');
+            }
+            if (e.key === 'Enter' || e.key === '=') calculate();
+            if (e.key === 'Escape') clearAll();
+            if (e.key === 'Backspace') deleteDigit();
+        });
+
+        // Close modal on outside click
+        document.getElementById('settingsModal').addEventListener('click', (e) => {
+            if (e.target.id === 'settingsModal') {
+                closeSettings();
+            }
+        });
+
+        document.getElementById('helpModal').addEventListener('click', (e) => {
+            if (e.target.id === 'helpModal') {
+                closeHelp();
+            }
+        });
+
+        document.getElementById('confirmDialog').addEventListener('click', (e) => {
+            if (e.target.id === 'confirmDialog') {
+                closeConfirmDialog();
+            }
+        });
+
+        // Load saved theme and data
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+                document.querySelector('.theme-toggle').textContent = '☀️ Light';
+            }
+            
+            loadData();
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>
