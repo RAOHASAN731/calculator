@@ -35,9 +35,8 @@
             justify-content: center;
         }
 
-        .theme-toggle, .settings-btn, .help-btn {
+        .theme-toggle, .settings-btn {
             position: absolute;
-            top: 30px;
             background: rgba(255, 255, 255, 0.2);
             border: 2px solid rgba(255, 255, 255, 0.3);
             color: white;
@@ -49,18 +48,15 @@
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .theme-toggle {
             right: 30px;
         }
 
-        .settings-btn {
-            right: 180px;
+        .theme-toggle {
+            top: 30px;
         }
 
-        .help-btn {
-            right: 330px;
+        .settings-btn {
+            top: 90px;
         }
 
         .theme-toggle:hover, .settings-btn:hover, .help-btn:hover {
@@ -696,9 +692,8 @@
     </style>
 </head>
 <body>
-    <button class="help-btn" onclick="openHelp()">❓ Help</button>
-    <button class="settings-btn" onclick="openSettings()">⚙️ Settings</button>
     <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+    <button class="settings-btn" onclick="openSettings()">⚙️ Settings</button>
     
     <div class="container">
         <div class="calculator">
@@ -824,6 +819,13 @@
                 </div>
                 <div class="preference-option" style="justify-content: center;">
                     <button class="clear-history" onclick="resetColors()" style="width: 100%;">🔄 Reset to Default</button>
+                </div>
+            </div>
+
+            <div class="preference-group">
+                <h3>❓ Help & Documentation</h3>
+                <div class="preference-option" style="justify-content: center;">
+                    <button class="clear-history" onclick="openHelp()" style="width: 100%;">📚 Open Help Guide</button>
                 </div>
             </div>
 
